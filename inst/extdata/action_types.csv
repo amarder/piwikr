@@ -1,0 +1,16 @@
+category_name,id,category_description
+PAGE_URL,1,the action is a URL to a page on the website being tracked.
+OUTLINK,2,the action is a URL is of a link on the website being tracked. A visitor clicked it.
+DOWNLOAD,3,the action is a URL of a file that was downloaded from the website being tracked.
+PAGE_TITLE,4,the action is the page title of a page on the website being tracked.
+ECOMMERCE_ITEM_SKU,5,the action is the SKU of an ecommerce item that is sold on the site.
+ECOMMERCE_ITEM_NAME,6,the action is the name of an ecommerce item that is sold on the site.
+ECOMMERCE_ITEM_CATEGORY,7,the action is the name of an ecommerce item category that is used on the site.
+SITE_SEARCH,8,the action type is a site search action.
+EVENT_CATEGORY,10,the action is an event category (see Tracking Events user guide)
+EVENT_ACTION,11,the action is an event category
+EVENT_NAME,12,the action is an event name
+CONTENT_NAME,13,the action is a content name (see Content Tracking user guide and developer guide)
+CONTENT_PIECE,14,the action is a content piece
+CONTENT_TARGET,15,the action is a content target
+CONTENT_INTERACTION,16,the action is a content interaction
