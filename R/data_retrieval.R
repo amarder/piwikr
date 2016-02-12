@@ -58,7 +58,7 @@ get_actions <- function(db) {
         time_to_serve=custom_float,
         time_spent_on_previous_action=time_spent_ref_action
         )
-    actions$datetime <- ymd_hms(actions$datetime)
+    actions$datetime <- lubridate::ymd_hms(actions$datetime)
     return(actions)
 }
 
@@ -66,6 +66,6 @@ get_visits <- function(db) {
     visits <- .get(db, 'piwik_log_visit')
     visits <- .remove_empty_columns(visits)
 
-    visits$visit_first_action_time <- ymd_hms(visits$visit_first_action_time)
+    visits$visit_first_action_time <- lubridate::ymd_hms(visits$visit_first_action_time)
     return(visits)
 }

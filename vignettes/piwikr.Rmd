@@ -1,0 +1,163 @@
+---
+title: "piwikr"
+subtitle: "Custom Web Analytics with Piwik and R"
+author: "Andrew Marder"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{piwikr}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r, echo=FALSE, warning=FALSE}
+library(knitr)
+
+opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+# Introduction
+
+Google Analytics is good, but [Piwik][piwik] is great! The biggest difference for me is Piwik gives me 100% data ownership. I like working with data so having access to the raw data from Piwik is a big plus. Piwik stores all of its data in a MySQL database. To get started let's connect to that database using `RMySQL` and `dplyr`:
+
+```{r}
+library(RMySQL)
+library(dplyr)
+
+## To keep my database password private, I pull the connection
+## parameters from environment variables. The next four lines get the
+## needed parameters and cast the database port as an integer.
+keys <- c('dbname', 'host', 'port', 'user', 'password')
+values <- lapply(keys, function(x) Sys.getenv(paste0('MYSQL_', toupper(x))))
+names(values) <- keys
+values$port <- as.integer(values$port)
+
+## Connect to the database.
+db <- do.call(src_mysql, values)
+```
+
+I written a simple library called `piwikr` to download and clean the tables stored in Piwik's database. Below I download and clean tables describing all visits to my site and all actions taken by visitors to the site.
+
+```{r}
+library(piwikr)
+
+visits <- get_visits(db)
+actions <- get_actions(db)
+```
+
+# Traffic Over Time
+
+How much traffic has my site generated over time?
+
+```{r, fig.width=7}
+library(ggplot2)
+library(lubridate)
+
+visitors <- actions %>%
+    mutate(day=floor_date(actions$datetime, 'day')) %>%
+    group_by(visitor_id) %>%
+    summarise(day_of_first_visit=min(day))
+
+days <- visitors %>%
+    group_by(day_of_first_visit) %>%
+    summarise(new_visitors=n())
+
+(
+    ggplot(days, aes(x=day_of_first_visit, y=new_visitors)) +
+    geom_line() +
+    ggtitle('New Visitors over Time') +
+    ylab('New Visitors') +
+    xlab('') +
+    theme_classic()
+)
+
+ndays <- as.numeric(
+    max(visitors$day_of_first_visit) - min(visitors$day_of_first_visit)
+    )
+```
+
+The site has attracted `r nrow(visitors)` visitors over `r ndays` days. The average rate is `r round(nrow(visitors) / ndays, 2)` visitors per day.
+
+# Popular Content
+
+```{r, results='asis'}
+library(pander)
+
+pages <- actions %>%
+    group_by(url) %>%
+    summarise(n=length(unique(visitor_id))) %>%
+    arrange(desc(n)) %>%
+    filter(grepl('amarder.github.io', url)) %>%
+    mutate(Page=sub('amarder.github.io', '', url), Visitors=n) %>%
+    select(Page, Visitors)
+
+pandoc.table(pages, style='rmarkdown', split.table=Inf, justify='ll')
+```
+
+# Referrals
+
+How are visitors finding my site?
+
+```{r, results='asis'}
+sources <- visits %>%
+    mutate(referer_name=ifelse(referer_type == 1, '(direct)', referer_name)) %>%
+    group_by(referer_name) %>%
+    summarise(Visits=n()) %>%
+    arrange(desc(Visits)) %>%
+    select(Source=referer_name, Visits)
+
+pandoc.table(sources, style='rmarkdown', justify='ll')
+```
+
+The data coming out of Piwik isn't perfect. I am using a redirect on one of my posts so [some browsers are losing referrer information][piwik-faq] and inflating the direct traffic numbers. If I wanted to fix this issue with Piwik I could remove that redirect, but fixing Google Analytics is much harder.
+
+# Browser Resolutions
+
+```{r}
+library(tidyr)
+
+resolutions <- visits %>%
+    separate(config_resolution, c('width', 'height'), sep='x', convert=TRUE) %>%
+    group_by(width, height) %>%
+    summarise(n=n()) %>%
+    ungroup() %>%
+    mutate(proportion=n / sum(n))
+
+(
+    ggplot(resolutions, aes(xmin=0, xmax=width, ymin=0, ymax=height, alpha=proportion)) +
+    geom_rect(fill=NA, color='black') +
+    theme_classic() +
+    theme(legend.position='none') +
+    coord_fixed(ratio = 1) +
+    ggtitle('Browser Resolutions') +
+    ylab('Height') +
+    xlab('Width')
+)
+```
+
+```{r, results='asis'}
+resolutions %>%
+    arrange(desc(proportion)) %>%
+    mutate(pct=round(100 * proportion, 1)) %>%
+    select(Width=width, Height=height, Percentage=pct) %>%
+    head(5) %>%
+    as.data.frame() %>%
+    pandoc.table(style='rmarkdown', justify='rrr')
+```
+
+# Why?
+
+```{r}
+str(actions)
+str(visits)
+```
+
+[piwik]: http://piwik.org/
+[google-analytics]: http://www.google.com/analytics/
+[sales-acceleration]: http://www.amazon.com/gp/product/B00T7Q9E2S
+[diamonds]: http://amarder.github.io/diamonds
+[piwik-faq]: http://piwik.org/faq/troubleshooting/faq_51/
+[spam-guide]: http://help.analyticsedge.com/spam-filter/definitive-guide-to-removing-google-analytics-spam/
+[trends]: http://www.google.com/trends/explore#q=google%20analytics%20spam
+[filter-referrals]: https://support.google.com/analytics/answer/1034842
+[default-segment]: http://webmasters.stackexchange.com/questions/74724/set-a-default-segment-for-google-analytics
