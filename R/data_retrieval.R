@@ -1,8 +1,5 @@
 ## [This page](https://developer.piwik.org/guides/persistence-and-the-mysql-backend) was useful in understanding the data stored by Piwik in MySQL.
 
-library(dplyr)
-library(lubridate)
-
 describe_database <- function(db) {
     table_names <- dbGetQuery(db$con, 'show tables')[, 1]
     tables <- lapply(table_names, function(x) tbl(db, x) %>% as.data.frame())
