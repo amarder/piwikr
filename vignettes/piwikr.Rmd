@@ -16,9 +16,7 @@ library(knitr)
 opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
-# Introduction
-
-Google Analytics is the industry standard for web analytics, but [Piwik][piwik] gives the analyst 100% data ownership. I like working with data so having access to the raw data from Piwik is a huge plus. Piwik stores all of its data in a MySQL database. To get started let's connect to that database using `RMySQL` and `dplyr`:
+[Piwik][piwik] is the web analytics framework for hackers. By providing access to raw page view data, Piwik allows analysts to use general purpose tools for analysis. Piwik stores all of its data in a MySQL database. To get started let's connect to the database using `RMySQL` and `dplyr`:
 
 ```{r, eval=FALSE}
 library(RMySQL)
@@ -52,7 +50,7 @@ values$port <- as.integer(values$port)
 my_db <- do.call(src_mysql, values)
 ```
 
-I've written an R library called `piwikr` to download and clean the tables stored in Piwik's database. Below I retrieve tables describing all visits to my site and all actions taken by visitors to the site.
+I've written an R library `piwikr` to download and clean the tables stored in Piwik's database. Below I retrieve tables describing all visits to the site and all actions taken by visitors to the site.
 
 ```{r}
 library(piwikr)
@@ -63,7 +61,7 @@ actions <- get_actions(my_db)
 
 # Traffic Over Time
 
-How much traffic has my site generated over time?
+How much traffic has the site generated over time?
 
 ```{r, fig.width=7}
 library(ggplot2)
@@ -74,12 +72,18 @@ visitors <- actions %>%
     group_by(visitor_id) %>%
     summarise(day_of_first_visit=min(day))
 
+date_range <- function(x) seq(min(x), max(x), by='days')
+grid <- data.frame(day_of_first_visit=date_range(visitors$day_of_first_visit))
+
 days <- visitors %>%
     group_by(day_of_first_visit) %>%
-    summarise(new_visitors=n())
+    summarise(new_visitors=n()) %>%
+    right_join(grid, by='day_of_first_visit') %>%
+    mutate(new_visitors=ifelse(is.na(new_visitors), 0, new_visitors))
 
 (
     ggplot(days, aes(x=day_of_first_visit, y=new_visitors)) +
+    geom_point() +
     geom_line() +
     ggtitle('New Visitors over Time') +
     ylab('New Visitors') +
@@ -92,11 +96,11 @@ ndays <- as.numeric(
     )
 ```
 
-My site has attracted `r nrow(visitors)` visitors over `r ndays` days. The average arrival rate is `r round(nrow(visitors) / ndays, 2)` visitors per day.
+The site has attracted `r nrow(visitors)` visitors over `r ndays` days. The average arrival rate was `r round(nrow(visitors) / ndays, 2)` visitors per day.
 
 # Popular Content
 
-What pages on my site have been viewed by the most visitors?
+What pages on the site have been viewed by the most visitors?
 
 ```{r, results='asis'}
 library(pander)
@@ -115,7 +119,7 @@ pandoc.table(pages, style='rmarkdown', split.table=Inf, justify='ll')
 
 # Referrals
 
-How are visitors finding my site?
+How are visitors finding the site?
 
 ```{r, results='asis'}
 visitors <- visits %>%
@@ -129,14 +133,15 @@ sources <- visitors %>%
     group_by(referer_name) %>%
     summarise(Visitors=n()) %>%
     arrange(desc(Visitors)) %>%
-    select(Source=referer_name, Visitors)
+    select(Source=referer_name, Visitors) %>%
+    filter(Visitors > 1)
 
 pandoc.table(sources, style='rmarkdown', justify='ll')
 ```
 
-The data coming out of Piwik isn't perfect. I am using a redirect on one of my posts so [some browsers are losing referrer information][piwik-faq] and inflating the direct traffic numbers. If I wanted to fix this issue with Piwik I could remove that redirect.
-
 # Browser Resolutions
+
+How important is mobile / how large are my visitors' browser windows?
 
 ```{r}
 library(tidyr)
@@ -162,7 +167,11 @@ resolutions <- visits %>%
 
 # Graphing Site Structure
 
+Using the `igraph` library, we can plot how users navigate from page to page on the site. Each node represents a page on the site, the size of a node is proportional to the number of visitors that have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
+
 ```{r}
+library(igraph)
+
 views <- actions %>%
     filter(grepl('amarder.github.io', url)) %>%
     mutate(page=sub('amarder.github.io', '', url))
@@ -185,7 +194,6 @@ edges <- views %>%
     group_by(previous_page, page) %>%
     summarise(n=n())
 
-library(igraph)
 g <- graph_from_data_frame(edges, directed=TRUE, vertices=pages)
 edge_importance <- 5 * E(g)$n / max(E(g)$n)
 vertex_importance <- V(g)$n / max(V(g)$n)
