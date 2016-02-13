@@ -14,7 +14,6 @@ compute_pages <- function(actions) {
         arrange(desc(n)) %>%
         filter(grepl('amarder.github.io', url)) %>%
         mutate(Page=sub('amarder.github.io', '', url), Visitors=n) %>%
-        mutate(Page=paste0('<a href="', Page, '">', Page, '</a>')) %>%
         select(Page, Visitors)
 
     return(pages)

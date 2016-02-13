@@ -54,8 +54,10 @@ get_actions <- function(db) {
         type=category_name,
         time_to_serve=custom_float,
         time_spent_on_previous_action=time_spent_ref_action
-        )
-    actions$datetime <- lubridate::ymd_hms(actions$datetime)
+        ) %>%
+        mutate(datetime=ymd_hms(datetime)) %>%
+        mutate(day=floor_date(datetime, 'day'))
+
     return(actions)
 }
 

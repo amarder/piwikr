@@ -16,18 +16,12 @@ library(knitr)
 opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
-[Piwik][piwik] is the web analytics framework for hackers. By providing access to raw page view data, Piwik allows analysts to use general purpose tools for analysis. Piwik stores all of its data in a MySQL database. To get started let's connect to the database using `RMySQL` and `dplyr`:
+[Piwik][piwik] is the web analytics framework for hackers. By providing access to raw page view data, Piwik allows analysts to use general purpose tools for analysis. Piwik stores all of its data in a MySQL database. I've written an R library `piwikr` to download and clean the tables stored in Piwik's database. To get started let's connect to the database:
 
 ```{r, eval=FALSE}
-library(RMySQL)
-library(dplyr)
+library(piwikr)
 
-my_db <- src_mysql(
-    host='host.com',
-    user='root',
-    password='pass',
-    dbname='piwik'
-    )
+my_db <- src_mysql(host='host.com', user='root', password='pass', dbname='piwik')
 ```
 
 ```{r, echo=FALSE}
@@ -40,8 +34,7 @@ my_db <- src_mysql(
 ## The code below sets up my database connection by pulling the
 ## appropriate information from the system environment.
 
-library(RMySQL)
-library(dplyr)
+library(piwikr)
 
 keys <- c('dbname', 'host', 'port', 'user', 'password')
 values <- lapply(keys, function(x) Sys.getenv(paste0('MYSQL_', toupper(x))))
@@ -50,14 +43,14 @@ values$port <- as.integer(values$port)
 my_db <- do.call(src_mysql, values)
 ```
 
-I've written an R library `piwikr` to download and clean the tables stored in Piwik's database. Below I retrieve tables describing all visits to the site and all actions taken by visitors to the site.
+Below I retrieve tables describing all visits to the site and all actions taken by visitors to the site.
 
 ```{r}
-library(piwikr)
-
 visits <- get_visits(my_db)
 actions <- get_actions(my_db)
 ```
+
+`piwikr` comes with functions to compute new tables from the primary tables (visits and actions). The four tables constructed below describe visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
 
 ```{r}
 visitors <- compute_visitors(actions)
@@ -68,26 +61,29 @@ sources <- compute_sources(visits)
 
 # Traffic Over Time
 
-How much traffic has the site generated over time?
+`piwikr` also comes with functions for creating graphs. How much traffic has the site generated over time?
 
 ```{r, fig.width=7}
-graph_visitors_vs_time(days)
+graph_visitors_vs_date(days)
 
-ndays <- as.numeric(
-    max(visitors$day_of_first_visit) - min(visitors$day_of_first_visit)
-    )
+nvisitors <- nrow(visitors)
+ndays <- as.numeric(max(actions$day) - min(actions$day))
+arrival_rate <- round(nvisitors / ndays, 2)
 ```
 
-The site has attracted `r nrow(visitors)` visitors over `r ndays` days. The average arrival rate was `r round(nrow(visitors) / ndays, 2)` visitors per day.
+The site has attracted `r nvisitors` visitors over `r ndays` days. The average arrival rate was `r arrival_rate` visitors per day.
 
 # Popular Content
 
 What pages on the site have been viewed by the most visitors?
 
 ```{r, results='asis'}
+library(dplyr)
 library(pander)
 
-pandoc.table(pages, style='rmarkdown', split.table=Inf, justify='ll')
+pages %>%
+    mutate(Page=paste0('<a href="', Page, '">', Page, '</a>')) %>%
+    pandoc.table(style='rmarkdown', split.table=Inf, justify='ll')
 ```
 
 # Referrals

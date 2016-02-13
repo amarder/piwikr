@@ -1,7 +1,8 @@
 import(lubridate)
-import(tidyr)
-import(dplyr)
 import(ggplot2)
+import(dplyr)
+importFrom(tidyr, separate)
 importFrom(igraph, graph_from_data_frame, E, V, layout.auto, plot.igraph)
 
+export(src_mysql)
 exportPattern("^[^\\.]")

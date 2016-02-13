@@ -1,9 +1,9 @@
-graph_visitors_vs_time <- function(days) {
+graph_visitors_vs_date <- function(days) {
     g <- (
         ggplot(days, aes(x=day_of_first_visit, y=new_visitors)) +
         geom_point() +
         geom_line() +
-        ggtitle('New Visitors over Time') +
+        ggtitle('Site Traffic by Date') +
         ylab('New Visitors') +
         xlab('') +
         theme_classic()
@@ -23,9 +23,9 @@ graph_browser_resolutions <- function(visits) {
         ggplot(resolutions, aes(xmin=0, xmax=width, ymin=0, ymax=height, alpha=proportion)) +
         geom_rect(fill=NA, color='black') +
         theme_classic() +
-        theme(legend.position='none') +
+        guides(alpha = guide_legend(title = "Proportion\nof Visits", override.aes = list(fill='black', color='white'))) +
         coord_fixed(ratio = 1) +
-        ggtitle('Browser Resolutions') +
+        ggtitle('Browser Dimensions') +
         ylab('Height') +
         xlab('Width')
     )
