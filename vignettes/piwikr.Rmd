@@ -18,31 +18,47 @@ opts_chunk$set(warning=FALSE, message=FALSE)
 
 # Introduction
 
-Google Analytics is good, but [Piwik][piwik] is great! The biggest difference for me is Piwik gives me 100% data ownership. I like working with data so having access to the raw data from Piwik is a big plus. Piwik stores all of its data in a MySQL database. To get started let's connect to that database using `RMySQL` and `dplyr`:
+Google Analytics is the industry standard for web analytics, but [Piwik][piwik] gives the analyst 100% data ownership. I like working with data so having access to the raw data from Piwik is a huge plus. Piwik stores all of its data in a MySQL database. To get started let's connect to that database using `RMySQL` and `dplyr`:
 
-```{r}
+```{r, eval=FALSE}
 library(RMySQL)
 library(dplyr)
 
-## To keep my database password private, I pull the connection
-## parameters from environment variables. The next four lines get the
-## needed parameters and cast the database port as an integer.
+my_db <- src_mysql(
+    host='host.com',
+    user='root',
+    password='pass',
+    dbname='piwik'
+    )
+```
+
+```{r, echo=FALSE}
+## Obviously, I don't want to share my database credentials with the
+## world, so I am following Hadley Wickham's advice of storing
+## passwords in environment variables.
+##
+## http://blog.revolutionanalytics.com/2015/11/how-to-store-and-use-authentication-details-with-r.html#comments
+##
+## The code below sets up my database connection by pulling the
+## appropriate information from the system environment.
+
+library(RMySQL)
+library(dplyr)
+
 keys <- c('dbname', 'host', 'port', 'user', 'password')
 values <- lapply(keys, function(x) Sys.getenv(paste0('MYSQL_', toupper(x))))
 names(values) <- keys
 values$port <- as.integer(values$port)
-
-## Connect to the database.
-db <- do.call(src_mysql, values)
+my_db <- do.call(src_mysql, values)
 ```
 
-I written a simple library called `piwikr` to download and clean the tables stored in Piwik's database. Below I download and clean tables describing all visits to my site and all actions taken by visitors to the site.
+I've written an R library called `piwikr` to download and clean the tables stored in Piwik's database. Below I retrieve tables describing all visits to my site and all actions taken by visitors to the site.
 
 ```{r}
 library(piwikr)
 
-visits <- get_visits(db)
-actions <- get_actions(db)
+visits <- get_visits(my_db)
+actions <- get_actions(my_db)
 ```
 
 # Traffic Over Time
@@ -76,9 +92,11 @@ ndays <- as.numeric(
     )
 ```
 
-The site has attracted `r nrow(visitors)` visitors over `r ndays` days. The average rate is `r round(nrow(visitors) / ndays, 2)` visitors per day.
+My site has attracted `r nrow(visitors)` visitors over `r ndays` days. The average arrival rate is `r round(nrow(visitors) / ndays, 2)` visitors per day.
 
 # Popular Content
+
+What pages on my site have been viewed by the most visitors?
 
 ```{r, results='asis'}
 library(pander)
@@ -89,6 +107,7 @@ pages <- actions %>%
     arrange(desc(n)) %>%
     filter(grepl('amarder.github.io', url)) %>%
     mutate(Page=sub('amarder.github.io', '', url), Visitors=n) %>%
+    mutate(Page=paste0('<a href="', Page, '">', Page, '</a>')) %>%
     select(Page, Visitors)
 
 pandoc.table(pages, style='rmarkdown', split.table=Inf, justify='ll')
@@ -99,17 +118,23 @@ pandoc.table(pages, style='rmarkdown', split.table=Inf, justify='ll')
 How are visitors finding my site?
 
 ```{r, results='asis'}
-sources <- visits %>%
+visitors <- visits %>%
+    group_by(idvisitor) %>%
+    arrange(visit_first_action_time) %>%
+    do(head(., 1)) %>%
+    ungroup()
+
+sources <- visitors %>%
     mutate(referer_name=ifelse(referer_type == 1, '(direct)', referer_name)) %>%
     group_by(referer_name) %>%
-    summarise(Visits=n()) %>%
-    arrange(desc(Visits)) %>%
-    select(Source=referer_name, Visits)
+    summarise(Visitors=n()) %>%
+    arrange(desc(Visitors)) %>%
+    select(Source=referer_name, Visitors)
 
 pandoc.table(sources, style='rmarkdown', justify='ll')
 ```
 
-The data coming out of Piwik isn't perfect. I am using a redirect on one of my posts so [some browsers are losing referrer information][piwik-faq] and inflating the direct traffic numbers. If I wanted to fix this issue with Piwik I could remove that redirect, but fixing Google Analytics is much harder.
+The data coming out of Piwik isn't perfect. I am using a redirect on one of my posts so [some browsers are losing referrer information][piwik-faq] and inflating the direct traffic numbers. If I wanted to fix this issue with Piwik I could remove that redirect.
 
 # Browser Resolutions
 
@@ -135,29 +160,55 @@ resolutions <- visits %>%
 )
 ```
 
-```{r, results='asis'}
-resolutions %>%
-    arrange(desc(proportion)) %>%
-    mutate(pct=round(100 * proportion, 1)) %>%
-    select(Width=width, Height=height, Percentage=pct) %>%
-    head(5) %>%
-    as.data.frame() %>%
-    pandoc.table(style='rmarkdown', justify='rrr')
-```
-
-# Why?
+# Graphing Site Structure
 
 ```{r}
-str(actions)
-str(visits)
+views <- actions %>%
+    filter(grepl('amarder.github.io', url)) %>%
+    mutate(page=sub('amarder.github.io', '', url))
+        
+pages <- views %>%
+    group_by(page) %>%
+    summarise(n=n()) %>%
+    ungroup() %>%
+    mutate(page_id=row_number(n))
+
+views <- views %>%
+    group_by(visit_id) %>%
+    mutate(t = (datetime - min(datetime)) / dminutes(1), n=n()) %>%
+    arrange(datetime) %>%
+    mutate(previous_page=lag(page)) %>%
+    ungroup()
+
+edges <- views %>%
+    filter(!is.na(previous_page), previous_page != page) %>%
+    group_by(previous_page, page) %>%
+    summarise(n=n())
+
+library(igraph)
+g <- graph_from_data_frame(edges, directed=TRUE, vertices=pages)
+edge_importance <- 5 * E(g)$n / max(E(g)$n)
+vertex_importance <- V(g)$n / max(V(g)$n)
+layout <- layout.auto(g)
+root_vertex <- V(g)$name == '/'
+origin <- layout[root_vertex, ]
+above_x_axis <- layout[, 2] > origin[2]
+vertex_diameter <- 30 * vertex_importance
+dist <- 0.7 * vertex_importance^(1/3)
+dist[dist < 0.3] <- 0.3
+dist[root_vertex] <- 0
+
+plot(
+    g,
+    vertex.size=vertex_diameter,
+    edge.width=1 * edge_importance,
+    edge.arrow.size=0.1 * edge_importance,
+    edge.curved=TRUE,
+    layout=layout,
+    vertex.label.dist=dist,
+    vertex.label.degree=ifelse(above_x_axis, -pi/2, pi/2)
+    )
 ```
 
 [piwik]: http://piwik.org/
-[google-analytics]: http://www.google.com/analytics/
-[sales-acceleration]: http://www.amazon.com/gp/product/B00T7Q9E2S
-[diamonds]: http://amarder.github.io/diamonds
 [piwik-faq]: http://piwik.org/faq/troubleshooting/faq_51/
-[spam-guide]: http://help.analyticsedge.com/spam-filter/definitive-guide-to-removing-google-analytics-spam/
-[trends]: http://www.google.com/trends/explore#q=google%20analytics%20spam
-[filter-referrals]: https://support.google.com/analytics/answer/1034842
-[default-segment]: http://webmasters.stackexchange.com/questions/74724/set-a-default-segment-for-google-analytics
