@@ -1,13 +1,6 @@
 ---
-title: "piwikr"
-subtitle: "Custom Web Analytics with Piwik and R"
-author: "Andrew Marder"
+title: "Custom Web Analytics"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_document
-vignette: >
-  %\VignetteIndexEntry{piwikr}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
 ---
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -16,7 +9,7 @@ library(knitr)
 opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
-[Piwik][piwik] is the web analytics framework for hackers. By providing access to raw page view data, Piwik allows analysts to use general purpose tools for analysis. Piwik stores all of its data in a MySQL database. I've written an R library `piwikr` to download and clean the tables stored in Piwik's database. To get started let's connect to the database:
+[Piwik][piwik] is the web analytics framework for hackers. By providing access to raw page view data, Piwik allows analysts to use general purpose tools for analysis. Piwik stores all of its data in a MySQL database. I've written an R library [piwikr][piwikr] to download and clean the tables stored in Piwik's database. To get started let's connect to the database:
 
 ```{r, eval=FALSE}
 library(piwikr)
@@ -50,7 +43,7 @@ visits <- get_visits(my_db)
 actions <- get_actions(my_db)
 ```
 
-`piwikr` comes with functions to compute new tables from the primary tables (visits and actions). The four tables constructed below describe visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
+piwikr comes with functions to compute new tables from the primary tables. The four tables constructed below describe visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
 
 ```{r}
 visitors <- compute_visitors(actions)
@@ -61,9 +54,9 @@ sources <- compute_sources(visits)
 
 # Traffic Over Time
 
-`piwikr` also comes with functions for creating graphs. How much traffic has the site generated over time?
+piwikr also comes with functions for creating graphs. How much traffic has the site generated over time?
 
-```{r, fig.width=7}
+```{r traffic, fig.height=3.5}
 graph_visitors_vs_date(days)
 
 nvisitors <- nrow(visitors)
@@ -71,7 +64,7 @@ ndays <- as.numeric(max(actions$day) - min(actions$day))
 arrival_rate <- round(nvisitors / ndays, 2)
 ```
 
-The site has attracted `r nvisitors` visitors over `r ndays` days. The average arrival rate was `r arrival_rate` visitors per day.
+The site has attracted `r nvisitors` visitors over `r ndays` days. The overall arrival rate was `r arrival_rate` visitors per day.
 
 # Popular Content
 
@@ -101,16 +94,17 @@ sources %>%
 
 How important is mobile / how large are the visitors' browser windows?
 
-```{r}
+```{r resolutions, fig.height=3.5, fig.width=7}
 graph_browser_resolutions(visits)
 ```
 
 # Graphing Site Structure
 
-`piwikr` can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
+piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
 
-```{r}
+```{r structure}
 graph_site_structure(actions)
 ```
 
 [piwik]: http://piwik.org/
+[piwikr]: https://github.com/amarder/piwikr

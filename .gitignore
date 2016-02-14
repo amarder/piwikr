@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .env
+
+/vignettes/piwikr.md
+/vignettes/figure/
