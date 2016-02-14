@@ -42,12 +42,10 @@ compute_sources <- function(visits) {
         ungroup()
 
     sources <- visitors %>%
-        mutate(referer_name=ifelse(referer_type == 1, '(direct)', referer_name)) %>%
-        group_by(referer_name) %>%
+        mutate(Source=ifelse(referer_type == 1, '(direct)', referer_name)) %>%
+        group_by(Source) %>%
         summarise(Visitors=n()) %>%
-        arrange(desc(Visitors)) %>%
-        select(Source=referer_name, Visitors) %>%
-        filter(Visitors > 1)
+        arrange(desc(Visitors))
 
     return(sources)
 }
