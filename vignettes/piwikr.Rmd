@@ -82,6 +82,7 @@ library(dplyr)
 library(pander)
 
 pages %>%
+    select(Page, Visitors) %>%
     mutate(Page=paste0('<a href="', Page, '">', Page, '</a>')) %>%
     pandoc.table(style='rmarkdown', split.table=Inf, justify='ll')
 ```
@@ -91,12 +92,14 @@ pages %>%
 How are visitors finding the site?
 
 ```{r, results='asis'}
-pandoc.table(sources, style='rmarkdown', justify='ll')
+sources %>%
+    select(Source, Visitors) %>%
+    pandoc.table(style='rmarkdown', justify='ll')
 ```
 
 # Browser Resolutions
 
-How important is mobile / how large are my visitors' browser windows?
+How important is mobile / how large are the visitors' browser windows?
 
 ```{r}
 graph_browser_resolutions(visits)
@@ -104,11 +107,10 @@ graph_browser_resolutions(visits)
 
 # Graphing Site Structure
 
-Using the `igraph` library, we can plot how users navigate from page to page on the site. Each node represents a page on the site, the size of a node is proportional to the number of visitors that have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
+`piwikr` can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
 
 ```{r}
 graph_site_structure(actions)
 ```
 
 [piwik]: http://piwik.org/
-[piwik-faq]: http://piwik.org/faq/troubleshooting/faq_51/
