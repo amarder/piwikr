@@ -2,5 +2,7 @@ If you like [Piwik](http://piwik.org/) and [R](https://www.r-project.org/), then
 
 To install `piwikr` use
 
-    install.packages('devtools')
-    devtools::install_github('amarder/piwikr')
+``` r
+install.packages('devtools')
+devtools::install_github('amarder/piwikr')
+```
