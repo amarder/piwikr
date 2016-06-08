@@ -1,6 +1,6 @@
 ---
 title: "Custom Web Analytics"
-date: "`r Sys.Date()`"
+date: "2016-02-17"
 ---
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -76,6 +76,7 @@ library(pander)
 
 pages %>%
     select(Page, Visitors) %>%
+    head(10) %>%
     mutate(Page=paste0('<a href="', Page, '">', Page, '</a>')) %>%
     pandoc.table(style='rmarkdown', split.table=Inf, justify='ll')
 ```
@@ -87,6 +88,7 @@ How are visitors finding the site?
 ```{r, results='asis'}
 sources %>%
     select(Source, Visitors) %>%
+    head(10) %>%
     pandoc.table(style='rmarkdown', justify='ll')
 ```
 
@@ -103,7 +105,12 @@ graph_browser_resolutions(visits)
 piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
 
 ```{r structure}
-graph_site_structure(actions)
+actions_on_big_pages <- actions %>%
+    group_by(url) %>%
+    mutate(visitors = n_distinct(visitor_id)) %>%
+    filter(visitors > 3) %>%
+    ungroup()
+graph_site_structure(actions_on_big_pages)
 ```
 
 [piwik]: http://piwik.org/
