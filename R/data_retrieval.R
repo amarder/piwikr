@@ -1,7 +1,22 @@
 #' @import dplyr
-#' @importFrom lubridate ymd_hms
+#' @importFrom lubridate ymd_hms floor_date
+#' @importFrom DBI dbGetQuery
+#' @importFrom RMySQL dbGetStatement
+
+globalVariables(c(
+    "time_spent_ref_action",
+    "custom_float",
+    "server_time",
+    "idvisitor",
+    "idvisit",
+    "idlink_va",
+    "category_name",
+    "name",
+    "idaction"
+))
 
 describe_database <- function(db) {
+    ## TODO: Use RMySQL function instead of DBI
     table_names <- dbGetQuery(db$con, "show tables")[, 1]
     tables <- lapply(table_names, function(x) tbl(db, x) %>% as.data.frame())
 

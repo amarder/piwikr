@@ -10,3 +10,5 @@ devtools::install_github('amarder/piwikr')
 ```
 
 [This page](https://developer.piwik.org/guides/persistence-and-the-mysql-backend) was useful in understanding the data stored by Piwik in MySQL.
+
+[This Stack Overflow answer](http://stackoverflow.com/a/12429344/3756632) describes my approach to handling non-standard evaluation and notes about "no visible binding for global variable."

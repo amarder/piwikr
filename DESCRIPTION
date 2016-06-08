@@ -14,7 +14,8 @@ Imports:
     tidyr,
     dplyr,
     igraph,
-    RMySQL
+    RMySQL,
+    DBI
 RoxygenNote: 5.0.1
 Suggests:
     covr,
