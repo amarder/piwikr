@@ -1,8 +1,5 @@
 language: r
 cache: packages
 
-r_github_packages:
-  - jimhester/covr
-
 script:
   Rscript -e 'covr::package_coverage()'

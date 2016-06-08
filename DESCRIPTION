@@ -13,3 +13,4 @@ Imports:
     dplyr,
     igraph,
     RMySQL
+Remotes: jimhester/covr
