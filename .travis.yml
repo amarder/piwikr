@@ -1,5 +1,5 @@
 language: r
 cache: packages
 
-script:
-  Rscript -e 'covr::package_coverage()'
+after_success:
+  Rscript -e 'covr::coveralls()'
