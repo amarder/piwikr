@@ -1,0 +1,7 @@
+language: r
+
+install:
+  R CMD INSTALL .
+
+script:
+  Rscript -e 'covr::package_coverage()'
