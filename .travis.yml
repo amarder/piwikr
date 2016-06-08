@@ -1,7 +1,11 @@
 language: r
 
+r_packages:
+  - devtools
+  - covr
+
 install:
-  R CMD INSTALL .
+  Rscript -e 'devtools::install(".")'
 
 script:
   Rscript -e 'covr::package_coverage()'
