@@ -1,10 +1,12 @@
 Package: piwikr
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-Depends: R (>= 3.2.1)
-License: What license is it under?
+Version: 0.0.1
+Author: Andrew Marder [aut, cre]
+Maintainer: Andrew Marder <andrew.n.marder@gmail.com>
+Title: Web Analytics for Hackers
+Description: Web Analytics for Hackers...
+Depends:
+    R (>= 3.2)
+License: GPL-2
 LazyData: true
 Imports:
     ggplot2,
@@ -14,3 +16,4 @@ Imports:
     igraph,
     RMySQL
 Remotes: jimhester/covr
+RoxygenNote: 5.0.1
