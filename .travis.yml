@@ -1,8 +1,8 @@
 language: r
 
-r_packages:
-  - devtools
-  - covr
+r_github_packages:
+  - hadley/devtools
+  - jimhester/covr
 
 install:
   Rscript -e 'devtools::install(".")'
