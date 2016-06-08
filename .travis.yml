@@ -1,11 +1,8 @@
 language: r
+cache: packages
 
 r_github_packages:
-  - hadley/devtools
   - jimhester/covr
-
-install:
-  Rscript -e 'devtools::install(".")'
 
 script:
   Rscript -e 'covr::package_coverage()'
