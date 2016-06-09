@@ -4,8 +4,6 @@
 #' @importFrom igraph graph_from_data_frame E V layout.auto plot.igraph
 
 globalVariables(c(
-    "new_visitors",
-    "day_of_first_visit",
     "previous_page",
     "datetime",
     "visit_id",
@@ -22,7 +20,7 @@ globalVariables(c(
 #' @export
 graph_visitors_vs_date <- function(days) {
     g <- (
-        ggplot(days, aes(x = day_of_first_visit, y = new_visitors)) +
+        ggplot(days, aes_string(x = "day_of_first_visit", y = "new_visitors")) +
         geom_point() +
         geom_line() +
         ggtitle("Site Traffic by Date") +
@@ -39,8 +37,9 @@ graph_visitors_vs_date <- function(days) {
 #' @export
 graph_browser_resolutions <- function(visits) {
     resolutions <- visits %>%
-        separate(config_resolution, c("width", "height"), sep = "x", convert = TRUE) %>%
+        separate(config_resolution, c("width", "height"), sep = "x", convert = TRUE, fill = "right") %>%
         group_by(width, height) %>%
+        filter(!is.na(width), !is.na(height)) %>%
         summarise(n = n()) %>%
         ungroup() %>%
         mutate(proportion = n / sum(n))

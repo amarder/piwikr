@@ -1,27 +1,13 @@
-#' @importFrom lubridate floor_date
-#' @importFrom utils head
-
-globalVariables(c(
-    "day",
-    "visitor_id",
-    "Visitors",
-    "Source",
-    "referer_name",
-    "referer_type",
-    ".",
-    "visit_first_action_time",
-    "Page"
-))
-
 #' Compute a table of visitors from a table of actions.
 #'
 #' @param actions Table of actions.
 #' @export
+#' @importFrom lubridate floor_date
+#'
 compute_visitors <- function(actions) {
     visitors <- actions %>%
-        mutate(day = floor_date(actions$datetime, "day")) %>%
-        group_by(visitor_id) %>%
-        summarise(day_of_first_visit = min(day))
+        group_by_("visitor_id") %>%
+        summarise_(day_of_first_visit = "min(day)")
 
     return(visitors)
 }
@@ -30,14 +16,15 @@ compute_visitors <- function(actions) {
 #'
 #' @param actions Table of actions.
 #' @export
+#'
 compute_pages <- function(actions) {
     pages <- actions %>%
         group_by(url) %>%
         summarise(n = length(unique(visitor_id))) %>%
         arrange(desc(n)) %>%
         filter(grepl("amarder.github.io", url)) %>%
-        mutate(Page = sub("amarder.github.io", "", url), Visitors = n) %>%
-        select(Page, Visitors)
+        mutate_(Page = "sub('amarder.github.io', '', url)", Visitors = "n") %>%
+        select_("Page", "Visitors")
 
     return(pages)
 }
@@ -46,6 +33,7 @@ compute_pages <- function(actions) {
 #'
 #' @param actions Table of actions.
 #' @export
+#'
 compute_days <- function(actions) {
     visitors <- compute_visitors(actions)
 
@@ -55,10 +43,10 @@ compute_days <- function(actions) {
     )
 
     days <- visitors %>%
-        group_by(day_of_first_visit) %>%
-        summarise(new_visitors = n()) %>%
+        group_by_("day_of_first_visit") %>%
+        summarise_(new_visitors = "n()") %>%
         right_join(grid, by = "day_of_first_visit") %>%
-        mutate(new_visitors = ifelse(is.na(new_visitors), 0, new_visitors))
+        mutate_(new_visitors = "ifelse(is.na(new_visitors), 0, new_visitors)")
 
     return(days)
 }
@@ -67,18 +55,21 @@ compute_days <- function(actions) {
 #'
 #' @param visits Table of visits.
 #' @export
+#' @importFrom utils head
+#'
 compute_sources <- function(visits) {
     visitors <- visits %>%
-        group_by(idvisitor) %>%
-        arrange(visit_first_action_time) %>%
-        do(head(., 1)) %>%
+        arrange_("visit_first_action_time") %>%
+        mutate_(i = 1:nrow(visits)) %>%
+        group_by_("idvisitor") %>%
+        filter(i == min(i)) %>%
         ungroup()
 
     sources <- visitors %>%
-        mutate(Source = ifelse(referer_type == 1, "(direct)", referer_name)) %>%
-        group_by(Source) %>%
-        summarise(Visitors = n()) %>%
-        arrange(desc(Visitors))
+        mutate_(Source = "ifelse(referer_type == 1, '(direct)', referer_name)") %>%
+        group_by_("Source") %>%
+        summarise_("Visitors = n()") %>%
+        arrange_("desc(Visitors)")
 
     return(sources)
 }

@@ -4,18 +4,6 @@
 #' @importFrom lubridate ymd_hms floor_date
 #' @importFrom utils str read.csv
 
-globalVariables(c(
-    "time_spent_ref_action",
-    "custom_float",
-    "server_time",
-    "idvisitor",
-    "idvisit",
-    "idlink_va",
-    "category_name",
-    "name",
-    "idaction"
-))
-
 #' @export
 dplyr::src_mysql
 
@@ -36,9 +24,9 @@ describe_database <- function(db) {
     }
 }
 
-.get <- function(...) suppressWarnings(tbl(...) %>% as.data.frame())
+get_tbl <- function(...) suppressWarnings(tbl(...) %>% as.data.frame())
 
-.remove_empty_columns <- function(x) {
+remove_empty_columns <- function(x) {
     for (k in names(x)) {
         if (all(is.na(x[, k]))) {
             x[[k]] <- NULL
@@ -52,16 +40,16 @@ describe_database <- function(db) {
 #' @param db Database to pull actions from.
 #' @export
 get_actions <- function(db) {
-    actions <- .get(db, "piwik_log_link_visit_action")
+    actions <- get_tbl(db, "piwik_log_link_visit_action")
 
-    actions <- .remove_empty_columns(actions)
+    actions <- remove_empty_columns(actions)
 
     ## Set up metadata on action types
-    action_types <- .get(db, "piwik_log_action")
+    action_types <- get_tbl(db, "piwik_log_action")
     path <- system.file("extdata", "action_types.csv", package = "piwikr")
     metadata <- read.csv(path)
     action_types <- action_types %>% left_join(metadata, by = c("type" = "id"))
-    action_types <- action_types %>% select(idaction, name, category_name)
+    action_types <- action_types %>% select_("idaction", "name", "category_name")
 
     ## Merge action types back into actions
     actions <- actions %>%
@@ -71,15 +59,15 @@ get_actions <- function(db) {
 
     ## custom_float: an unspecified float field, usually used to hold
     ## the time it took the server to serve this action
-    actions <- actions %>% select(
-        id = idlink_va,
-        visitor_id = idvisitor,
-        visit_id = idvisit,
-        datetime = server_time,
-        url = name,
-        type = category_name,
-        time_to_serve = custom_float,
-        time_spent_on_previous_action = time_spent_ref_action
+    actions <- actions %>% select_(
+        id = "idlink_va",
+        visitor_id = "idvisitor",
+        visit_id = "idvisit",
+        datetime = "server_time",
+        url = "name",
+        type = "category_name",
+        time_to_serve = "custom_float",
+        time_spent_on_previous_action = "time_spent_ref_action"
         ) %>%
         mutate(datetime = ymd_hms(datetime)) %>%
         mutate(day = floor_date(datetime, "day"))
@@ -92,8 +80,8 @@ get_actions <- function(db) {
 #' @param db Database to pull actions from.
 #' @export
 get_visits <- function(db) {
-    visits <- .get(db, "piwik_log_visit")
-    visits <- .remove_empty_columns(visits)
+    visits <- get_tbl(db, "piwik_log_visit")
+    visits <- remove_empty_columns(visits)
 
     visits$visit_first_action_time <- ymd_hms(visits$visit_first_action_time)
     return(visits)
