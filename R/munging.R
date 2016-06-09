@@ -59,16 +59,15 @@ compute_days <- function(actions) {
 #'
 compute_sources <- function(visits) {
     visitors <- visits %>%
-        arrange_("visit_first_action_time") %>%
-        mutate_(i = 1:nrow(visits)) %>%
         group_by_("idvisitor") %>%
-        filter(i == min(i)) %>%
+        mutate_(min_time = "min(visit_first_action_time)") %>%
+        filter_("visit_first_action_time == min_time") %>%
         ungroup()
 
     sources <- visitors %>%
         mutate_(Source = "ifelse(referer_type == 1, '(direct)', referer_name)") %>%
         group_by_("Source") %>%
-        summarise_("Visitors = n()") %>%
+        summarise_(Visitors = "n()") %>%
         arrange_("desc(Visitors)")
 
     return(sources)
