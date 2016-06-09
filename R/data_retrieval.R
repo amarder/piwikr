@@ -2,6 +2,7 @@
 #' @import DBI
 #' @import RMySQL
 #' @importFrom lubridate ymd_hms floor_date
+#' @importFrom utils str read.csv
 
 globalVariables(c(
     "time_spent_ref_action",
@@ -46,6 +47,9 @@ describe_database <- function(db) {
     return(x)
 }
 
+#' Retrieve and clean a table of actions from the passed database.
+#'
+#' @param db Database to pull actions from.
 #' @export
 get_actions <- function(db) {
     actions <- .get(db, "piwik_log_link_visit_action")
@@ -83,6 +87,9 @@ get_actions <- function(db) {
     return(actions)
 }
 
+#' Retrieve and clean a table of visits from the passed database.
+#'
+#' @param db Database to pull actions from.
 #' @export
 get_visits <- function(db) {
     visits <- .get(db, "piwik_log_visit")

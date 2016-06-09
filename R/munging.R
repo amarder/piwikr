@@ -1,4 +1,5 @@
 #' @importFrom lubridate floor_date
+#' @importFrom utils head
 
 globalVariables(c(
     "day",
@@ -12,6 +13,9 @@ globalVariables(c(
     "Page"
 ))
 
+#' Compute a table of visitors from a table of actions.
+#'
+#' @param actions Table of actions.
 #' @export
 compute_visitors <- function(actions) {
     visitors <- actions %>%
@@ -22,6 +26,9 @@ compute_visitors <- function(actions) {
     return(visitors)
 }
 
+#' Compute a table of pages from a table of actions.
+#'
+#' @param actions Table of actions.
 #' @export
 compute_pages <- function(actions) {
     pages <- actions %>%
@@ -35,6 +42,9 @@ compute_pages <- function(actions) {
     return(pages)
 }
 
+#' Compute a table of days from a table of actions.
+#'
+#' @param actions Table of actions.
 #' @export
 compute_days <- function(actions) {
     visitors <- compute_visitors(actions)
@@ -53,6 +63,9 @@ compute_days <- function(actions) {
     return(days)
 }
 
+#' Summarise visits by the source of traffic.
+#'
+#' @param visits Table of visits.
 #' @export
 compute_sources <- function(visits) {
     visitors <- visits %>%

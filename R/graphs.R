@@ -12,9 +12,13 @@ globalVariables(c(
     "proportion",
     "height",
     "width",
-    "config_resolution"
+    "config_resolution",
+    "page"
 ))
 
+#' Graph number of visitors over time.
+#'
+#' @param days Table of days.
 #' @export
 graph_visitors_vs_date <- function(days) {
     g <- (
@@ -29,6 +33,9 @@ graph_visitors_vs_date <- function(days) {
     return(g)
 }
 
+#' Graph distribution of browser resolutions.
+#'
+#' @param visits Table of visits.
 #' @export
 graph_browser_resolutions <- function(visits) {
     resolutions <- visits %>%
@@ -50,6 +57,9 @@ graph_browser_resolutions <- function(visits) {
     )
 }
 
+#' Graph structure of site based on visitor actions.
+#'
+#' @param actions Table of actions.
 #' @export
 graph_site_structure <- function(actions) {
     views <- actions %>%
@@ -86,7 +96,7 @@ graph_site_structure <- function(actions) {
     dist[dist < 0.3] <- 0.3
     dist[root_vertex] <- 0
 
-    plot(
+    plot.igraph(
         g,
         vertex.size = vertex_diameter,
         edge.width = 1 * edge_importance,
