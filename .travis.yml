@@ -2,4 +2,4 @@ language: r
 cache: packages
 
 after_success:
-  Rscript -e 'covr::coveralls()'
+  R -e 'covr::coveralls()'
