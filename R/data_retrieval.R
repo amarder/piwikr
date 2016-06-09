@@ -3,6 +3,7 @@
 #' @import RMySQL
 #' @importFrom lubridate ymd_hms floor_date
 #' @importFrom utils str read.csv
+NULL
 
 #' @export
 dplyr::src_mysql
@@ -69,8 +70,8 @@ get_actions <- function(db) {
         time_to_serve = "custom_float",
         time_spent_on_previous_action = "time_spent_ref_action"
         ) %>%
-        mutate(datetime = ymd_hms(datetime)) %>%
-        mutate(day = floor_date(datetime, "day"))
+        mutate_(datetime = ~ ymd_hms(datetime)) %>%
+        mutate_(day = ~ floor_date(datetime, "day"))
 
     return(actions)
 }

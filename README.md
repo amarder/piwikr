@@ -17,5 +17,3 @@ devtools::install_github('amarder/piwikr')
 ## Notes
 
 [This page](https://developer.piwik.org/guides/persistence-and-the-mysql-backend) was useful in understanding the data stored by Piwik in MySQL.
-
-[This Stack Overflow answer](http://stackoverflow.com/a/12429344/3756632) describes my current approach to suppressing notes from `R CMD check` that are created by my use of non-standard evaluation.

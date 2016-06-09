@@ -1,23 +1,14 @@
 #' @import ggplot2
-#' @importFrom tidyr separate
+#' @importFrom tidyr separate_
 #' @importFrom lubridate dminutes
 #' @importFrom igraph graph_from_data_frame E V layout.auto plot.igraph
-
-globalVariables(c(
-    "previous_page",
-    "datetime",
-    "visit_id",
-    "proportion",
-    "height",
-    "width",
-    "config_resolution",
-    "page"
-))
+NULL
 
 #' Graph number of visitors over time.
 #'
 #' @param days Table of days.
 #' @export
+#'
 graph_visitors_vs_date <- function(days) {
     g <- (
         ggplot(days, aes_string(x = "day_of_first_visit", y = "new_visitors")) +
@@ -35,17 +26,18 @@ graph_visitors_vs_date <- function(days) {
 #'
 #' @param visits Table of visits.
 #' @export
+#'
 graph_browser_resolutions <- function(visits) {
     resolutions <- visits %>%
-        separate(config_resolution, c("width", "height"), sep = "x", convert = TRUE, fill = "right") %>%
-        group_by(width, height) %>%
-        filter(!is.na(width), !is.na(height)) %>%
-        summarise(n = n()) %>%
+        separate_("config_resolution", c("width", "height"), sep = "x", convert = TRUE, fill = "right") %>%
+        group_by_("width", "height") %>%
+        filter_("!is.na(width)", "!is.na(height)") %>%
+        summarise_(n = "n()") %>%
         ungroup() %>%
-        mutate(proportion = n / sum(n))
+        mutate_(proportion = "n / sum(n)")
 
     (
-        ggplot(resolutions, aes(xmin = 0, xmax = width, ymin = 0, ymax = height, alpha = proportion)) +
+        ggplot(resolutions, aes_string(xmin = 0, xmax = "width", ymin = 0, ymax = "height", alpha = "proportion")) +
         geom_rect(fill = NA, color = "black") +
         theme_classic() +
         guides(alpha = guide_legend(title = "Proportion\nof Visits", override.aes = list(fill = "black", color = "white"))) +
@@ -60,28 +52,29 @@ graph_browser_resolutions <- function(visits) {
 #'
 #' @param actions Table of actions.
 #' @export
+#'
 graph_site_structure <- function(actions) {
     views <- actions %>%
-        filter(grepl("amarder.github.io", url)) %>%
-        mutate(page = sub("amarder.github.io", "", url))
+        filter_("grepl('amarder.github.io', url)") %>%
+        mutate_(page = "sub('amarder.github.io', '', url)")
 
     pages <- views %>%
-        group_by(page) %>%
-        summarise(n = n()) %>%
+        group_by_("page") %>%
+        summarise_(n = "n()") %>%
         ungroup() %>%
-        mutate(page_id = row_number(n))
+        mutate_(page_id = "row_number(n)")
 
     views <- views %>%
-        group_by(visit_id) %>%
-        mutate(t = (datetime - min(datetime)) / dminutes(1), n = n()) %>%
-        arrange(datetime) %>%
-        mutate(previous_page = lag(page)) %>%
+        group_by_("visit_id") %>%
+        mutate_(t = ~ (datetime - min(datetime)) / dminutes(1), n = "n()") %>%
+        arrange_("datetime") %>%
+        mutate_(previous_page = "lag(page)") %>%
         ungroup()
 
     edges <- views %>%
-        filter(!is.na(previous_page), previous_page != page) %>%
-        group_by(previous_page, page) %>%
-        summarise(n = n())
+        filter_("!is.na(previous_page)", "previous_page != page") %>%
+        group_by_("previous_page", "page") %>%
+        summarise_(n = "n()")
 
     g <- graph_from_data_frame(edges, directed = TRUE, vertices = pages)
     edge_importance <- 5 * E(g)$n / max(E(g)$n)
