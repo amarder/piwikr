@@ -1,6 +1,12 @@
 ---
 title: "Custom Web Analytics"
+author: "Andrew Marder"
 date: "2016-02-17"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Custom Web Analytics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, echo=FALSE, warning=FALSE}

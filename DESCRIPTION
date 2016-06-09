@@ -17,6 +17,10 @@ Imports:
     RMySQL,
     DBI
 RoxygenNote: 5.0.1
-Suggests:
+Suggests: 
     covr,
-    testthat
+    testthat,
+    knitr,
+    rmarkdown,
+    pander
+VignetteBuilder: knitr

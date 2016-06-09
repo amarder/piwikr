@@ -15,6 +15,7 @@ globalVariables(c(
     "config_resolution"
 ))
 
+#' @export
 graph_visitors_vs_date <- function(days) {
     g <- (
         ggplot(days, aes(x = day_of_first_visit, y = new_visitors)) +
@@ -28,6 +29,7 @@ graph_visitors_vs_date <- function(days) {
     return(g)
 }
 
+#' @export
 graph_browser_resolutions <- function(visits) {
     resolutions <- visits %>%
         separate(config_resolution, c("width", "height"), sep = "x", convert = TRUE) %>%
@@ -48,6 +50,7 @@ graph_browser_resolutions <- function(visits) {
     )
 }
 
+#' @export
 graph_site_structure <- function(actions) {
     views <- actions %>%
         filter(grepl("amarder.github.io", url)) %>%

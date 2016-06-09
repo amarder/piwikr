@@ -1,7 +1,3 @@
-.Rproj.user
 .Rhistory
-.RData
 .env
-
-/vignettes/piwikr.md
-/vignettes/figure/
+inst/doc

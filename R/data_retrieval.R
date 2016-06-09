@@ -1,7 +1,7 @@
 #' @import dplyr
+#' @import DBI
+#' @import RMySQL
 #' @importFrom lubridate ymd_hms floor_date
-#' @importFrom DBI dbGetQuery
-#' @importFrom RMySQL dbGetStatement
 
 globalVariables(c(
     "time_spent_ref_action",
@@ -14,6 +14,9 @@ globalVariables(c(
     "name",
     "idaction"
 ))
+
+#' @export
+dplyr::src_mysql
 
 describe_database <- function(db) {
     ## TODO: Use RMySQL function instead of DBI
@@ -43,6 +46,7 @@ describe_database <- function(db) {
     return(x)
 }
 
+#' @export
 get_actions <- function(db) {
     actions <- .get(db, "piwik_log_link_visit_action")
 
@@ -79,6 +83,7 @@ get_actions <- function(db) {
     return(actions)
 }
 
+#' @export
 get_visits <- function(db) {
     visits <- .get(db, "piwik_log_visit")
     visits <- .remove_empty_columns(visits)

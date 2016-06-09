@@ -1,3 +1,5 @@
+#' @importFrom lubridate floor_date
+
 globalVariables(c(
     "day",
     "visitor_id",
@@ -10,15 +12,17 @@ globalVariables(c(
     "Page"
 ))
 
+#' @export
 compute_visitors <- function(actions) {
     visitors <- actions %>%
-        mutate(day = lubridate::floor_date(actions$datetime, "day")) %>%
+        mutate(day = floor_date(actions$datetime, "day")) %>%
         group_by(visitor_id) %>%
         summarise(day_of_first_visit = min(day))
 
     return(visitors)
 }
 
+#' @export
 compute_pages <- function(actions) {
     pages <- actions %>%
         group_by(url) %>%
@@ -31,6 +35,7 @@ compute_pages <- function(actions) {
     return(pages)
 }
 
+#' @export
 compute_days <- function(actions) {
     visitors <- compute_visitors(actions)
 
@@ -48,6 +53,7 @@ compute_days <- function(actions) {
     return(days)
 }
 
+#' @export
 compute_sources <- function(visits) {
     visitors <- visits %>%
         group_by(idvisitor) %>%
