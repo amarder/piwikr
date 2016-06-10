@@ -4,10 +4,14 @@
 \alias{get_actions}
 \title{Retrieve and clean a table of actions from the passed database.}
 \usage{
-get_actions(db)
+get_actions(db, table_prefix = "piwik_")
 }
 \arguments{
 \item{db}{Database to pull actions from.}
+
+\item{table_prefix}{Pull data from
+{{table_prefix}}log_link_visit_action and
+{{table_prefix}}log_action.}
 }
 \description{
 Retrieve and clean a table of actions from the passed database.

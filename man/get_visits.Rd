@@ -4,10 +4,12 @@
 \alias{get_visits}
 \title{Retrieve and clean a table of visits from the passed database.}
 \usage{
-get_visits(db)
+get_visits(db, table_prefix = "piwik_")
 }
 \arguments{
 \item{db}{Database to pull actions from.}
+
+\item{table_prefix}{Pull data from {{table_prefix}}log_visit.}
 }
 \description{
 Retrieve and clean a table of visits from the passed database.

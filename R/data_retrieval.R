@@ -37,6 +37,9 @@ remove_empty_columns <- function(x) {
 #' Retrieve and clean a table of actions from the passed database.
 #'
 #' @param db Database to pull actions from.
+#' @param table_prefix Pull data from
+#'     {{table_prefix}}log_link_visit_action and
+#'     {{table_prefix}}log_action.
 #'
 #' @importFrom lubridate ymd_hms floor_date
 #' @importFrom utils read.csv
@@ -81,6 +84,8 @@ get_actions <- function(db, table_prefix = "piwik_") {
 #' Retrieve and clean a table of visits from the passed database.
 #'
 #' @param db Database to pull actions from.
+#' @param table_prefix Pull data from {{table_prefix}}log_visit.
+#'
 #' @importFrom lubridate ymd_hms
 #' @export
 get_visits <- function(db, table_prefix = "piwik_") {
