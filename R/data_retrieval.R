@@ -1,17 +1,15 @@
 #' @import dplyr
-#' @import DBI
 #' @import RMySQL
-#' @importFrom lubridate ymd_hms floor_date
-#' @importFrom utils str read.csv
 NULL
 
 #' @export
 dplyr::src_mysql
 
+#' @importFrom DBI dbGetQuery
+#' @importFrom utils str
 describe_database <- function(db) {
-    ## TODO: Use RMySQL function instead of DBI
     table_names <- dbGetQuery(db$con, "show tables")[, 1]
-    tables <- lapply(table_names, function(x) tbl(db, x) %>% as.data.frame())
+    tables <- lapply(table_names, function(x) get_tbl(db, x))
 
     for (i in 1:length(table_names)) {
         x <- table_names[i]
@@ -39,18 +37,22 @@ remove_empty_columns <- function(x) {
 #' Retrieve and clean a table of actions from the passed database.
 #'
 #' @param db Database to pull actions from.
+#'
+#' @importFrom lubridate ymd_hms floor_date
+#' @importFrom utils read.csv
 #' @export
-get_actions <- function(db) {
-    actions <- get_tbl(db, "piwik_log_link_visit_action")
+get_actions <- function(db, table_prefix = "piwik_") {
+    actions <- get_tbl(db, paste0(table_prefix, "log_link_visit_action"))
 
     actions <- remove_empty_columns(actions)
 
     ## Set up metadata on action types
-    action_types <- get_tbl(db, "piwik_log_action")
+    action_types <- get_tbl(db, paste0(table_prefix, "log_action"))
     path <- system.file("extdata", "action_types.csv", package = "piwikr")
     metadata <- read.csv(path)
-    action_types <- action_types %>% left_join(metadata, by = c("type" = "id"))
-    action_types <- action_types %>% select_("idaction", "name", "category_name")
+    action_types <- action_types %>%
+        left_join(metadata, by = c("type" = "id")) %>%
+        select_("idaction", "name", "category_name")
 
     ## Merge action types back into actions
     actions <- actions %>%
@@ -79,9 +81,10 @@ get_actions <- function(db) {
 #' Retrieve and clean a table of visits from the passed database.
 #'
 #' @param db Database to pull actions from.
+#' @importFrom lubridate ymd_hms
 #' @export
-get_visits <- function(db) {
-    visits <- get_tbl(db, "piwik_log_visit")
+get_visits <- function(db, table_prefix = "piwik_") {
+    visits <- get_tbl(db, paste0(table_prefix, "log_visit"))
     visits <- remove_empty_columns(visits)
 
     visits$visit_first_action_time <- ymd_hms(visits$visit_first_action_time)
