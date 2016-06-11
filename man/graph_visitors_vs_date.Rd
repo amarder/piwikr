@@ -4,10 +4,12 @@
 \alias{graph_visitors_vs_date}
 \title{Graph number of visitors over time.}
 \usage{
-graph_visitors_vs_date(days)
+graph_visitors_vs_date(days, point_size = 0.5)
 }
 \arguments{
 \item{days}{Table of days.}
+
+\item{point_size}{Size of the points plotted for each day.}
 }
 \description{
 Graph number of visitors over time.

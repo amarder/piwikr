@@ -1,23 +1,25 @@
 #' @import ggplot2
 #' @importFrom tidyr separate_
-#' @importFrom lubridate dminutes
+#' @importFrom lubridate dminutes ddays
 #' @importFrom igraph graph_from_data_frame E V layout.auto plot.igraph
 NULL
 
 #' Graph number of visitors over time.
 #'
 #' @param days Table of days.
+#' @param point_size Size of the points plotted for each day.
 #' @export
 #'
-graph_visitors_vs_date <- function(days) {
+graph_visitors_vs_date <- function(days, point_size = 0.5) {
     g <- (
         ggplot(days, aes_string(x = "day_of_first_visit", y = "new_visitors")) +
-        geom_point() +
-        geom_line() +
+        geom_rect(aes_string(xmin = "day_of_first_visit - ddays(0.5)", xmax = "day_of_first_visit + ddays(0.5)", ymin = "0", ymax = "new_visitors"), fill = "black", alpha = 0.25) +
+        geom_point(size = point_size) +
         ggtitle("Site Traffic by Date") +
         ylab("New Visitors") +
         xlab("") +
-        theme_classic()
+        theme_bw() +
+        scale_y_continuous(minor_breaks = NULL)
         )
     return(g)
 }
