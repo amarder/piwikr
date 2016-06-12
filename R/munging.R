@@ -19,7 +19,7 @@ compute_visitors <- function(actions) {
 #'
 compute_pages <- function(actions) {
     pages <- actions %>%
-        group_by(url) %>%
+        group_by_("url") %>%
         summarise_(n = "length(unique(visitor_id))") %>%
         arrange_("desc(n)") %>%
         filter_("grepl('amarder.github.io', url)") %>%

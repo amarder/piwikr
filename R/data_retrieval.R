@@ -78,6 +78,10 @@ get_actions <- function(db, table_prefix = "piwik_") {
         mutate_(datetime = ~ ymd_hms(datetime)) %>%
         mutate_(day = ~ floor_date(datetime, "day"))
 
+    ## Clean up url column
+    actions <- actions %>%
+        separate_(col = "url", into = c("url", "query_string"), sep = "[?]", fill = "right")
+
     return(actions)
 }
 
