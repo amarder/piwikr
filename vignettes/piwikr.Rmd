@@ -102,7 +102,7 @@ sources %>%
 
 How important is mobile / how large are the visitors' browser windows?
 
-```{r resolutions, fig.height=3.5, fig.width=7}
+```{r resolutions, fig.height=6, fig.width=7}
 graph_browser_resolutions(visits)
 ```
 

@@ -36,22 +36,49 @@ graph_visitors_vs_date <- function(days) {
 #'
 graph_browser_resolutions <- function(visits) {
     resolutions <- visits %>%
-        separate_("config_resolution", c("width", "height"), sep = "x", convert = TRUE, fill = "right") %>%
+        separate_(
+            "config_resolution", c("width", "height"), sep = "x",
+            convert = TRUE, fill = "right"
+        ) %>%
         group_by_("width", "height") %>%
         filter_("!is.na(width)", "!is.na(height)") %>%
         summarise_(n = "n()") %>%
         ungroup() %>%
         mutate_(proportion = "n / sum(n)")
 
+    segments <- function(row) {
+        data.frame(
+            x =    c(0,         0,          row$width,  0         ),
+            y =    c(0,         0,          0,          row$height),
+            xend = c(row$width, 0,          row$width,  row$width ),
+            yend = c(0,         row$height, row$height, row$height),
+            proportion = row$proportion,
+            row = row$row
+        )
+    }
+    lines <- resolutions %>%
+        mutate(row = 1:nrow(resolutions)) %>%
+        group_by_("row") %>%
+        do_(~ segments(.))
+
     (
-        ggplot(resolutions, aes_string(xmin = 0, xmax = "width", ymin = 0, ymax = "height", alpha = "proportion")) +
-        geom_rect(fill = NA, color = "black") +
-        theme_classic() +
-        guides(alpha = guide_legend(title = "Proportion\nof Visits", override.aes = list(fill = "black", color = "white"))) +
+        ggplot(
+            lines,
+            aes_string(x = "x", y = "y", xend = "xend", yend = "yend",
+                       alpha = "proportion")
+        ) +
+        geom_segment(color = "black") +
+        scale_alpha_continuous(range = c(0, 1)) +
+        theme_bw() +
         coord_fixed(ratio = 1) +
         ggtitle("Browser Dimensions") +
         ylab("Height") +
-        xlab("Width")
+        xlab("Width") +
+        guides(alpha = guide_legend(title = "Proportion\nof Visits")) +
+        theme(
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()
+        )
     )
 }
 
