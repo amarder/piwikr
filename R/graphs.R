@@ -46,39 +46,21 @@ graph_browser_resolutions <- function(visits) {
         ungroup() %>%
         mutate_(proportion = "n / sum(n)")
 
-    segments <- function(row) {
-        data.frame(
-            x =    c(0,         0,          row$width,  0         ),
-            y =    c(0,         0,          0,          row$height),
-            xend = c(row$width, 0,          row$width,  row$width ),
-            yend = c(0,         row$height, row$height, row$height),
-            proportion = row$proportion,
-            row = row$row
-        )
-    }
-    lines <- resolutions %>%
-        mutate(row = 1:nrow(resolutions)) %>%
-        group_by_("row") %>%
-        do_(~ segments(.))
-
     (
         ggplot(
-            lines,
-            aes_string(x = "x", y = "y", xend = "xend", yend = "yend",
-                       alpha = "proportion")
+            resolutions,
+            aes_string(x = "width", y = "height", size = "proportion")
         ) +
-        geom_segment(color = "black") +
-        scale_alpha_continuous(range = c(0, 1)) +
+        geom_point(alpha = 0.5, color = "black") +
+        scale_size(range = c(0, 4)) +
         theme_bw() +
         coord_fixed(ratio = 1) +
         ggtitle("Browser Dimensions") +
         ylab("Height") +
         xlab("Width") +
-        guides(alpha = guide_legend(title = "Proportion\nof Visits")) +
-        theme(
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()
-        )
+        guides(size = guide_legend(title = "Proportion\nof Visits")) +
+        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA)) +
+        scale_x_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA))
     )
 }
 

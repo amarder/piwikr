@@ -1,7 +1,7 @@
 ---
 title: "Custom Web Analytics"
 author: "Andrew Marder"
-date: "2016-02-17"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_document
 vignette: >
   %\VignetteIndexEntry{Custom Web Analytics}
@@ -100,9 +100,7 @@ sources %>%
 How important is mobile / how large are the visitors' browser windows?
 
 ```{r resolutions, fig.height=6, fig.width=7}
-library(ggplot2)
-
-graph_browser_resolutions(visits) + xlim(0, 4000) + ylim(0, 4000)
+graph_browser_resolutions(visits)
 ```
 
 # Graphing Site Structure
