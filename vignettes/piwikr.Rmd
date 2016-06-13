@@ -100,7 +100,9 @@ sources %>%
 How important is mobile / how large are the visitors' browser windows?
 
 ```{r resolutions, fig.height=6, fig.width=7}
-graph_browser_resolutions(visits)
+library(ggplot2)
+
+graph_browser_resolutions(visits) + xlim(0, 4000) + ylim(0, 4000)
 ```
 
 # Graphing Site Structure
@@ -108,12 +110,7 @@ graph_browser_resolutions(visits)
 piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
 
 ```{r structure}
-actions_on_big_pages <- actions %>%
-    group_by(url) %>%
-    mutate(visitors = n_distinct(visitor_id)) %>%
-    filter(visitors > 3) %>%
-    ungroup()
-graph_site_structure(actions_on_big_pages)
+graph_site_structure(actions)
 ```
 
 [piwik]: http://piwik.org/
