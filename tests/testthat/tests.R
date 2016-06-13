@@ -1,12 +1,3 @@
-db_from_env <- function() {
-    keys <- c("dbname", "host", "port", "user", "password")
-    values <- lapply(keys, function(x) Sys.getenv(paste0("MYSQL_", toupper(x))))
-    names(values) <- keys
-    values$port <- as.integer(values$port)
-    my_db <- do.call(src_mysql, values)
-    return(my_db)
-}
-
 db <- db_from_env()
 visits <- get_visits(db)
 actions <- get_actions(db)

@@ -5,6 +5,19 @@ NULL
 #' @export
 dplyr::src_mysql
 
+#' Read environment variables MYSQL_(DBNAME|HOST|PORT|USER|PASSWORD)
+#'     and connect to corresponding database.
+#'
+#' @export
+db_from_env <- function() {
+    keys <- c("dbname", "host", "port", "user", "password")
+    values <- lapply(keys, function(x) Sys.getenv(paste0("MYSQL_", toupper(x))))
+    names(values) <- keys
+    values$port <- as.integer(values$port)
+    my_db <- do.call(src_mysql, values)
+    return(my_db)
+}
+
 #' @importFrom DBI dbGetQuery
 #' @importFrom utils str
 describe_database <- function(db) {

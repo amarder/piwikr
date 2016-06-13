@@ -35,11 +35,8 @@ my_db <- src_mysql(host='host.com', user='root', password='pass', dbname='piwik'
 
 library(piwikr)
 
-keys <- c('dbname', 'host', 'port', 'user', 'password')
-values <- lapply(keys, function(x) Sys.getenv(paste0('MYSQL_', toupper(x))))
-names(values) <- keys
-values$port <- as.integer(values$port)
-my_db <- do.call(src_mysql, values)
+readRenviron("../.env")
+my_db <- db_from_env()
 ```
 
 Below I retrieve tables describing all visits to the site and all actions taken by visitors to the site.
