@@ -24,6 +24,7 @@ graph_visitors_vs_date <- function(days) {
         ylab("New Visitors") +
         xlab("") +
         theme_bw() +
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
         scale_y_continuous(minor_breaks = NULL)
         )
     return(g)
@@ -54,13 +55,14 @@ graph_browser_resolutions <- function(visits) {
         geom_point(alpha = 0.5, color = "black") +
         scale_size(range = c(0, 4)) +
         theme_bw() +
+        theme(panel.grid.major = element_blank()) +
         coord_fixed(ratio = 1) +
         ggtitle("Browser Dimensions") +
         ylab("Height") +
         xlab("Width") +
         guides(size = guide_legend(title = "Proportion\nof Visits")) +
-        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA)) +
-        scale_x_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA))
+        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA), minor_breaks = NULL) +
+        scale_x_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA), minor_breaks = NULL)
     )
 }
 
@@ -123,8 +125,6 @@ graph_site_structure <- function(actions, vertex_size = function(n) 2 * log(n)) 
     origin <- layout[root_vertex, ]
     above_x_axis <- layout[, 2] > origin[2]
 
-    ## TODO: Figure out how igraph places labels.
-    ## https://github.com/igraph/rigraph/blob/dev/R/plot.R#L676-L677
     dist <- rep(2 / 5, nrow(data$vertices))
     dist[root_vertex] <- 0
 
