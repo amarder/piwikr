@@ -59,7 +59,7 @@ sources <- compute_sources(visits)
 
 piwikr also comes with functions for creating graphs. How much traffic has the site generated over time?
 
-```{r traffic, fig.height=3.5}
+```{r traffic, fig.height=3, fig.width=6}
 graph_visitors_vs_date(days)
 
 nvisitors <- nrow(visitors)
@@ -99,9 +99,12 @@ sources %>%
 
 How important is mobile / how large are the visitors' browser windows?
 
-```{r resolutions, fig.height=6, fig.width=7}
+```{r resolutions, fig.height=5, fig.width=6}
 graph_browser_resolutions(visits)
+pct_mobile <- (mean(visits$screen_width < 800, na.rm = TRUE) * 100) %>% round(1)
 ```
+
+`r pct_mobile`% of visits were performed on a screen with width less than 800 pixels.
 
 # Graphing Site Structure
 

@@ -4,30 +4,38 @@
 #' @importFrom igraph graph_from_data_frame E V layout.auto plot.igraph
 NULL
 
+no_grid <- function() {
+    theme(
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+    )
+}
+
+my_theme <- function() theme_bw() + no_grid()
+
 #' Graph number of visitors over time.
 #'
 #' @param days Table of days.
 #' @export
 #'
 graph_visitors_vs_date <- function(days) {
-    lines <- days %>%
-        mutate_(a = ~ day_of_first_visit - ddays(0.5),
-                b = ~ day_of_first_visit + ddays(0.5)) %>%
-        select_("day_of_first_visit", "new_visitors", "a", "b") %>%
-        gather_("col", "x", c("a", "b"))
+    rects <- days %>%
+        mutate_(
+            xmin = ~ day_of_first_visit - ddays(0.5),
+            xmax = ~ day_of_first_visit + ddays(0.5)
+        )
 
-    g <- (
-        ggplot() +
-        geom_rect(aes_string(xmin = "day_of_first_visit - ddays(0.5)", xmax = "day_of_first_visit + ddays(0.5)", ymin = "0", ymax = "new_visitors"), data = days, fill = "black", alpha = 0.25) +
-        geom_line(aes_string(x = "x", y = "new_visitors", group = "day_of_first_visit"), data = lines) +
+    aesthetics <- aes_string(
+        xmin = "xmin", xmax = "xmax",
+        ymin = "0", ymax = "new_visitors"
+    )
+
+    ggplot(rects, aesthetics) +
+        geom_rect() +
         ggtitle("Daily Traffic") +
         ylab("New Visitors") +
         xlab("") +
-        theme_bw() +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-        scale_y_continuous(minor_breaks = NULL)
-        )
-    return(g)
+        my_theme()
 }
 
 #' Graph distribution of browser resolutions.
@@ -37,35 +45,29 @@ graph_visitors_vs_date <- function(days) {
 #'
 graph_browser_resolutions <- function(visits) {
     resolutions <- visits %>%
-        separate_(
-            "config_resolution", c("width", "height"), sep = "x",
-            convert = TRUE, fill = "right"
-        ) %>%
-        group_by_("width", "height") %>%
-        filter_("!is.na(width)", "!is.na(height)") %>%
-        summarise_(n = "n()") %>%
+        group_by_("screen_width", "screen_height") %>%
+        filter_(~ !is.na(screen_width), ~ !is.na(screen_height)) %>%
+        summarise_(n = ~ n()) %>%
         ungroup() %>%
-        mutate_(proportion = "n / sum(n)")
+        mutate_(proportion = ~ n / sum(n))
 
-    (
-        ggplot(
-            resolutions,
-            aes_string(x = "width", y = "height", size = "proportion")
-        ) +
-        geom_point(alpha = 0.5, color = "black") +
-        scale_size(range = c(0, 4)) +
-        theme_bw() +
-        theme(panel.grid.major = element_blank()) +
+    aesthetics <- aes_string(
+        x = "screen_width", y = "screen_height", size = "proportion"
+    )
+    ggplot(resolutions, aesthetics) +
+        geom_point(alpha = 0.5) +
+        scale_size(range = c(0.1, 4)) +
+        my_theme() +
         coord_fixed(ratio = 1) +
         ggtitle("Browser Dimensions") +
         ylab("Height") +
         xlab("Width") +
         guides(size = guide_legend(title = "Proportion\nof Visits")) +
-        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA), minor_breaks = NULL) +
-        scale_x_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA), minor_breaks = NULL)
-    )
+        scale_x_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA)) +
+        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA))
 }
 
+#' @importFrom utils tail
 traffic_flows <- function(actions, base_url = "amarder.github.io", top = 10) {
     ## Focus on actions on this site.
     views <- actions %>%
@@ -97,8 +99,7 @@ traffic_flows <- function(actions, base_url = "amarder.github.io", top = 10) {
     ## Keep the top n pages.
     pages <- pages %>% arrange_("n") %>% tail(n = top)
     edges <- edges %>%
-        mutate_(keep = ~ (page %in% pages$page) & (previous_page %in% pages$page)) %>%
-        filter(keep)
+        filter_(~ (page %in% pages$page) & (previous_page %in% pages$page))
 
     return(list(vertices = pages, edges = edges))
 }

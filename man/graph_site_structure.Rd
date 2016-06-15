@@ -4,10 +4,13 @@
 \alias{graph_site_structure}
 \title{Graph structure of site based on visitor actions.}
 \usage{
-graph_site_structure(actions)
+graph_site_structure(actions, vertex_size = function(n) 2 * log(n))
 }
 \arguments{
 \item{actions}{Table of actions.}
+
+\item{vertex_size}{A function to transform the number a viewers a
+page received into the dize of the vertex to be graphed.}
 }
 \description{
 Graph structure of site based on visitor actions.

@@ -110,5 +110,11 @@ get_visits <- function(db, table_prefix = "piwik_") {
     visits <- remove_empty_columns(visits)
 
     visits$visit_first_action_time <- ymd_hms(visits$visit_first_action_time)
+
+    visits <- visits %>%
+        separate_(
+            "config_resolution", c("screen_width", "screen_height"), sep = "x",
+            convert = TRUE, fill = "right"
+        )
     return(visits)
 }
