@@ -4,13 +4,15 @@
 \alias{graph_site_structure}
 \title{Graph structure of site based on visitor actions.}
 \usage{
-graph_site_structure(actions, vertex_size = function(n) 2 * log(n))
+graph_site_structure(actions, n = 10, layout = layout_with_graphopt)
 }
 \arguments{
 \item{actions}{Table of actions.}
 
-\item{vertex_size}{A function to transform the number a viewers a
-page received into the dize of the vertex to be graphed.}
+\item{n}{The top `n` most-visited pages will be included in the
+graph.}
+
+\item{layout}{igraph layout function used to arrange vertices.}
 }
 \description{
 Graph structure of site based on visitor actions.

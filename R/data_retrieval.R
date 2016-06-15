@@ -56,6 +56,7 @@ remove_empty_columns <- function(x) {
 #'
 #' @importFrom lubridate ymd_hms floor_date
 #' @importFrom utils read.csv
+#' @importFrom tidyr separate_
 #' @export
 get_actions <- function(db, table_prefix = "piwik_") {
     actions <- get_tbl(db, paste0(table_prefix, "log_link_visit_action"))
@@ -104,6 +105,7 @@ get_actions <- function(db, table_prefix = "piwik_") {
 #' @param table_prefix Pull data from {{table_prefix}}log_visit.
 #'
 #' @importFrom lubridate ymd_hms
+#' @importFrom tidyr separate_
 #' @export
 get_visits <- function(db, table_prefix = "piwik_") {
     visits <- get_tbl(db, paste0(table_prefix, "log_visit"))

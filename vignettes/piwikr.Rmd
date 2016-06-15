@@ -110,8 +110,9 @@ pct_mobile <- (mean(visits$screen_width < 800, na.rm = TRUE) * 100) %>% round(1)
 
 piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
 
-```{r structure}
-graph_site_structure(actions)
+```{r structure, fig.width = 8}
+set.seed(2)
+graph_site_structure(actions, n = 14)
 ```
 
 [piwik]: http://piwik.org/

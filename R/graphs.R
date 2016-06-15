@@ -1,7 +1,5 @@
 #' @import ggplot2
-#' @importFrom tidyr separate_ gather_
 #' @importFrom lubridate dminutes ddays
-#' @importFrom igraph graph_from_data_frame E V layout.auto plot.igraph
 NULL
 
 no_grid <- function() {
@@ -68,7 +66,7 @@ graph_browser_resolutions <- function(visits) {
 }
 
 #' @importFrom utils tail
-traffic_flows <- function(actions, base_url = "amarder.github.io", top = 10) {
+traffic_flows <- function(actions, base_url = "amarder.github.io", n) {
     ## Focus on actions on this site.
     views <- actions %>%
         filter_(sprintf("grepl('%s', url)", base_url)) %>%
@@ -87,19 +85,22 @@ traffic_flows <- function(actions, base_url = "amarder.github.io", top = 10) {
     pages <- views %>%
         group_by_("page") %>%
         summarise_(n = "n()") %>%
-        ungroup() %>%
-        mutate_(page_id = "row_number(n)")
+        ungroup()
 
     ## Create a table of edges.
     edges <- views %>%
         filter_("!is.na(previous_page)", "previous_page != page") %>%
         group_by_("previous_page", "page") %>%
-        summarise_(n = "n()")
+        summarise_(n = "n()") %>%
+        ungroup() %>%
+        select_(i = "previous_page", j = "page", n = "n")
 
     ## Keep the top n pages.
-    pages <- pages %>% arrange_("n") %>% tail(n = top)
+    pages <- pages %>% arrange_("n") %>% tail(n = n)
     edges <- edges %>%
-        filter_(~ (page %in% pages$page) & (previous_page %in% pages$page))
+        right_join(pages %>% select_(i = "page"), by = "i") %>%
+        right_join(pages %>% select_(j = "page"), by = "j") %>%
+        filter_(~ !is.na(n))
 
     return(list(vertices = pages, edges = edges))
 }
@@ -107,36 +108,40 @@ traffic_flows <- function(actions, base_url = "amarder.github.io", top = 10) {
 #' Graph structure of site based on visitor actions.
 #'
 #' @param actions Table of actions.
-#' @param vertex_size A function to transform the number a viewers a
-#'     page received into the dize of the vertex to be graphed.
+#' @param n The top `n` most-visited pages will be included in the
+#'     graph.
+#' @param layout igraph layout function used to arrange vertices.
 #'
+#' @importFrom igraph graph_from_data_frame layout_with_graphopt
 #' @export
 #'
-graph_site_structure <- function(actions, vertex_size = function(n) 2 * log(n)) {
-    data <- traffic_flows(actions)
+graph_site_structure <- function(actions, n = 10, layout = layout_with_graphopt) {
+    g <- traffic_flows(actions, n = n)
 
-    g <- graph_from_data_frame(
-        data$edges,
+    igraph_obj <- graph_from_data_frame(
+        g$edges,
         directed = TRUE,
-        vertices = data$vertices
+        vertices = g$vertices
     )
-    edge_importance <- 5 * E(g)$n / max(E(g)$n)
-    layout <- layout.auto(g)
-    root_vertex <- V(g)$name == "/"
-    origin <- layout[root_vertex, ]
-    above_x_axis <- layout[, 2] > origin[2]
 
-    dist <- rep(2 / 5, nrow(data$vertices))
-    dist[root_vertex] <- 0
+    ## Use igraph to position vertices
+    xy_coords <- layout(igraph_obj)
+    g$vertices$x <- xy_coords[, 1]
+    g$vertices$y <- xy_coords[, 2]
 
-    plot.igraph(
-        g,
-        vertex.size = vertex_size(V(g)$n),
-        edge.width = 1 * edge_importance,
-        edge.arrow.size = 0.1 * edge_importance,
-        edge.curved = TRUE,
-        layout = layout,
-        vertex.label.dist = dist,
-        vertex.label.degree = ifelse(above_x_axis, -pi / 2, pi / 2)
-        )
+    ## Merge the coordinates into the edge data
+    g$edges <- g$edges %>%
+        left_join(g$vertices %>% select_(i = "page", i_x = "x", i_y = "y"), by = "i") %>%
+        left_join(g$vertices %>% select_(j = "page", j_x = "x", j_y = "y"), by = "j")
+
+    ggplot() +
+        geom_curve(aes_string(x = "i_x", y = "i_y", xend = "j_x", yend = "j_y", alpha = "n"), data = g$edges) +
+        geom_label(aes_string(x = "x", y = "y", size = "n", label = "page"), data = g$vertices) +
+        theme_classic() +
+        xlab("") +
+        ylab("") +
+        scale_x_continuous(breaks = NULL, expand = c(.1, 0)) +
+        scale_y_continuous(breaks = NULL, expand = c(.1, 0)) +
+        scale_alpha(range = c(0, 1), guide = guide_legend(title = "Link Traversals")) +
+        scale_size(range = c(2, 7), guide = guide_legend(title = "Visitors"))
 }
