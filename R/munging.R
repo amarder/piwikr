@@ -15,16 +15,17 @@ compute_visitors <- function(actions) {
 #' Compute a table of pages from a table of actions.
 #'
 #' @param actions Table of actions.
+#' @param base_url A string like "host.com" with no trailing slash.
 #' @export
 #'
-compute_pages <- function(actions) {
+compute_pages <- function(actions, base_url) {
     pages <- actions %>%
         group_by_("url") %>%
-        summarise_(n = "length(unique(visitor_id))") %>%
-        arrange_("desc(n)") %>%
-        filter_("grepl('amarder.github.io', url)") %>%
-        mutate_(Page = "sub('amarder.github.io', '', url)", Visitors = "n") %>%
-        select_("Page", "Visitors")
+        summarise_(n = ~ length(unique(visitor_id))) %>%
+        arrange_(~ desc(n)) %>%
+        filter_(~ grepl(paste0("^", base_url), url)) %>%
+        mutate_(page = ~ sub(base_url, "", url)) %>%
+        select_("page", visitors = "n")
 
     return(pages)
 }

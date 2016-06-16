@@ -4,10 +4,12 @@
 \alias{compute_pages}
 \title{Compute a table of pages from a table of actions.}
 \usage{
-compute_pages(actions)
+compute_pages(actions, base_url)
 }
 \arguments{
 \item{actions}{Table of actions.}
+
+\item{base_url}{A string like "host.com" with no trailing slash.}
 }
 \description{
 Compute a table of pages from a table of actions.

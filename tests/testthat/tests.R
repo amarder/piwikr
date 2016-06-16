@@ -1,4 +1,5 @@
 db <- db_from_env()
+base_url <- "amarder.github.io"
 visits <- get_visits(db)
 actions <- get_actions(db)
 
@@ -16,7 +17,7 @@ test_that("table prefix can be set", {
 test_that("munging code works", {
     visitors <- compute_visitors(actions)
     days <- compute_days(actions)
-    pages <- compute_pages(actions)
+    pages <- compute_pages(actions, base_url)
     sources <- compute_sources(visits)
 })
 
@@ -29,6 +30,6 @@ test_that("graphing code works", {
         mutate(visitors = n_distinct(visitor_id)) %>%
         filter(visitors > 3) %>%
         ungroup()
-    graph_site_structure(actions_on_big_pages)
+    graph_site_structure(actions_on_big_pages, base_url)
     file.remove("Rplots.pdf")
 })

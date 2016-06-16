@@ -66,7 +66,7 @@ piwikr comes with functions to compute new tables from the primary tables. The f
 ```{r}
 visitors <- compute_visitors(actions)
 days <- compute_days(actions)
-pages <- compute_pages(actions)
+pages <- compute_pages(actions, base_url = "amarder.github.io")
 sources <- compute_sources(visits)
 ```
 
@@ -93,10 +93,10 @@ library(dplyr)
 library(pander)
 
 pages %>%
-    select(Page, Visitors) %>%
+    mutate(Page = paste0('<a href="https://amarder.github.io', page, '">', page, "</a>")) %>%
+    select(Page, Visitors = visitors) %>%
     head(10) %>%
-    mutate(Page=paste0('<a href="', Page, '">', Page, '</a>')) %>%
-    pandoc.table(style='rmarkdown', split.table=Inf, justify='ll')
+    pandoc.table(style = "rmarkdown", split.table = Inf, justify = "ll")
 ```
 
 # Referrals
@@ -127,7 +127,7 @@ piwikr can also visualize how users navigate from page to page on the site. Each
 
 ```{r structure, fig.height=7}
 set.seed(2)
-graph_site_structure(actions, n = 14)
+graph_site_structure(actions, base_url = "amarder.github.io", n = 14)
 ```
 
 [piwik]: http://piwik.org/

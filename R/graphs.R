@@ -67,7 +67,7 @@ graph_browser_resolutions <- function(visits) {
 }
 
 #' @importFrom utils tail
-traffic_flows <- function(actions, base_url = "amarder.github.io", n) {
+traffic_flows <- function(actions, base_url, n) {
     ## Focus on actions on this site.
     views <- actions %>%
         filter_(sprintf("grepl('%s', url)", base_url)) %>%
@@ -109,6 +109,7 @@ traffic_flows <- function(actions, base_url = "amarder.github.io", n) {
 #' Graph structure of site based on visitor actions.
 #'
 #' @param actions Table of actions.
+#' @param base_url A string like "host.com" with no trailing slash.
 #' @param n The top `n` most-visited pages will be included in the
 #'     graph.
 #' @param layout igraph layout function used to arrange vertices.
@@ -116,8 +117,8 @@ traffic_flows <- function(actions, base_url = "amarder.github.io", n) {
 #' @importFrom igraph graph_from_data_frame layout_with_graphopt
 #' @export
 #'
-graph_site_structure <- function(actions, n = 10, layout = layout_with_graphopt) {
-    g <- traffic_flows(actions, n = n)
+graph_site_structure <- function(actions, base_url, n = 10, layout = layout_with_graphopt) {
+    g <- traffic_flows(actions, base_url, n = n)
 
     igraph_obj <- graph_from_data_frame(
         g$edges,

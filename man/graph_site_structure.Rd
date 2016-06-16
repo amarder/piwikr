@@ -4,10 +4,13 @@
 \alias{graph_site_structure}
 \title{Graph structure of site based on visitor actions.}
 \usage{
-graph_site_structure(actions, n = 10, layout = layout_with_graphopt)
+graph_site_structure(actions, base_url, n = 10,
+  layout = layout_with_graphopt)
 }
 \arguments{
 \item{actions}{Table of actions.}
+
+\item{base_url}{A string like "host.com" with no trailing slash.}
 
 \item{n}{The top `n` most-visited pages will be included in the
 graph.}
