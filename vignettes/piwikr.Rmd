@@ -1,6 +1,6 @@
 ---
 title: "Custom Web Analytics"
-description: "Introducing piwikr: an R package for the analyis of raw pageview data."
+description: "Introducing piwikr: an R package for the analysis of raw page view data."
 author: "Andrew Marder"
 date: "`r Sys.Date()`"
 output:
@@ -27,7 +27,12 @@ opts_chunk$set(warning=FALSE, message=FALSE)
 ```{r, eval=FALSE}
 library(piwikr)
 
-my_db <- src_mysql(host='host.com', user='root', password='pass', dbname='piwik')
+my_db <- src_mysql(
+    host = "host.com",
+    user = "andrew",
+    password = "xxxxx",
+    dbname = "piwik"
+)
 ```
 
 ```{r, echo=FALSE}
@@ -56,7 +61,7 @@ visits <- get_visits(my_db)
 actions <- get_actions(my_db)
 ```
 
-piwikr comes with functions to compute new tables from the primary tables. The four tables constructed below describe2 visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
+piwikr comes with functions to compute new tables from the primary tables. The four tables constructed below describe visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
 
 ```{r}
 visitors <- compute_visitors(actions)
@@ -110,21 +115,19 @@ sources %>%
 How important is mobile / how large are the visitors' browser windows?
 
 ```{r resolutions, fig.height=7}
-library(ggplot2)
-
-graph_browser_resolutions(visits) + theme(legend.position = c(0.9, 0.875))
+graph_browser_resolutions(visits)
 pct_mobile <- 100 * mean(visits$screen_width < 800, na.rm = TRUE)
 ```
 
 `r specify_decimal(pct_mobile, 1)`% of visits were performed on a screen with width less than 800 pixels.
 
-# Graphing Site Structure
+# Site Structure
 
-piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
+piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled between the two pages.
 
 ```{r structure, fig.height=7}
 set.seed(2)
-graph_site_structure(actions, n = 14) + theme(legend.position = "bottom", legend.box = "horizontal")
+graph_site_structure(actions, n = 14)
 ```
 
 [piwik]: http://piwik.org/

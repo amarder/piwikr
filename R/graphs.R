@@ -62,7 +62,8 @@ graph_browser_resolutions <- function(visits) {
         xlab("Width") +
         guides(size = guide_legend(title = "Proportion\nof Visits")) +
         scale_x_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA)) +
-        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA))
+        scale_y_continuous(breaks = seq(0, 6000, 1000), limits = c(0, NA)) +
+        theme(legend.position = c(0.9, 0.875))
 }
 
 #' @importFrom utils tail
@@ -143,5 +144,6 @@ graph_site_structure <- function(actions, n = 10, layout = layout_with_graphopt)
         scale_x_continuous(breaks = NULL, expand = c(.1, 0)) +
         scale_y_continuous(breaks = NULL, expand = c(.1, 0)) +
         scale_alpha(range = c(0, 1), guide = guide_legend(title = "Link Traversals")) +
-        scale_size(range = c(2, 7), guide = guide_legend(title = "Visitors"))
+        scale_size(range = c(2, 7), guide = guide_legend(title = "Visitors")) +
+        theme(legend.position = "bottom", legend.box = "horizontal")
 }
