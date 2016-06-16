@@ -1,12 +1,19 @@
 ---
 title: "Custom Web Analytics"
+description: "Introducing piwikr: an R package for the analyis of raw pageview data."
 author: "Andrew Marder"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_document
+output:
+  html_document:
+    toc: true
+  md_document:
+    preserve_yaml: true
 vignette: >
   %\VignetteIndexEntry{Custom Web Analytics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+twitter:
+  image: "./piwikr_files/figure-markdown_strict/resolutions-1.png"
 ---
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -37,6 +44,9 @@ library(piwikr)
 
 readRenviron("../.env")
 my_db <- db_from_env()
+
+## I use this function to round numbers in the text.
+specify_decimal <- function(x, k) format(round(x, k), nsmall=k)
 ```
 
 Below I retrieve tables describing all visits to the site and all actions taken by visitors to the site.
@@ -46,7 +56,7 @@ visits <- get_visits(my_db)
 actions <- get_actions(my_db)
 ```
 
-piwikr comes with functions to compute new tables from the primary tables. The four tables constructed below describe visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
+piwikr comes with functions to compute new tables from the primary tables. The four tables constructed below describe2 visitors to the site, days the site was actively collecting data, pages on the site, and sources of traffic to the site.
 
 ```{r}
 visitors <- compute_visitors(actions)
@@ -59,15 +69,15 @@ sources <- compute_sources(visits)
 
 piwikr also comes with functions for creating graphs. How much traffic has the site generated over time?
 
-```{r traffic, fig.height=3, fig.width=6}
+```{r traffic, fig.height=3.5}
 graph_visitors_vs_date(days)
 
 nvisitors <- nrow(visitors)
 ndays <- as.numeric(max(actions$day) - min(actions$day))
-arrival_rate <- round(nvisitors / ndays, 2)
+arrival_rate <- nvisitors / ndays
 ```
 
-The site has attracted `r nvisitors` visitors over `r ndays` days. The overall arrival rate was `r arrival_rate` visitors per day.
+The site has attracted `r nvisitors` visitors over `r ndays` days. The overall arrival rate was `r specify_decimal(arrival_rate, 2)` visitors per day.
 
 # Popular Content
 
@@ -99,20 +109,22 @@ sources %>%
 
 How important is mobile / how large are the visitors' browser windows?
 
-```{r resolutions, fig.height=5, fig.width=6}
-graph_browser_resolutions(visits)
-pct_mobile <- (mean(visits$screen_width < 800, na.rm = TRUE) * 100) %>% round(1)
+```{r resolutions, fig.height=7}
+library(ggplot2)
+
+graph_browser_resolutions(visits) + theme(legend.position = c(0.9, 0.875))
+pct_mobile <- 100 * mean(visits$screen_width < 800, na.rm = TRUE)
 ```
 
-`r pct_mobile`% of visits were performed on a screen with width less than 800 pixels.
+`r specify_decimal(pct_mobile, 1)`% of visits were performed on a screen with width less than 800 pixels.
 
 # Graphing Site Structure
 
 piwikr can also visualize how users navigate from page to page on the site. Each node in the graph below represents a page on the site, the size of a node is proportional to the number of visitors who have viewed the page. The width of each edge is proportional to the number of visitors that traveled from the source page to the destination page.
 
-```{r structure, fig.width = 8}
+```{r structure, fig.height=7}
 set.seed(2)
-graph_site_structure(actions, n = 14)
+graph_site_structure(actions, n = 14) + theme(legend.position = "bottom", legend.box = "horizontal")
 ```
 
 [piwik]: http://piwik.org/
