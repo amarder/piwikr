@@ -3,6 +3,15 @@ base_url <- "amarder.github.io"
 visits <- get_visits(db)
 actions <- get_actions(db)
 
+check_names <- function(data) {
+    expect_that(names(data), matches("^[a-z_]+$"))
+}
+
+test_that("column names are all lower case", {
+    check_names(visits)
+    check_names(actions)
+})
+
 test_that("table prefix can be set", {
     expect_error(
         get_visits(db, table_prefix = "xxx"),
@@ -16,9 +25,13 @@ test_that("table prefix can be set", {
 
 test_that("munging code works", {
     visitors <- compute_visitors(actions)
+    check_names(visitors)
     days <- compute_days(actions)
+    check_names(days)
     pages <- compute_pages(actions, base_url)
+    check_names(pages)
     sources <- compute_sources(visits)
+    check_names(sources)
 })
 
 test_that("graphing code works", {

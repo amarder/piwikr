@@ -105,7 +105,7 @@ How are visitors finding the site?
 
 ```{r, results='asis'}
 sources %>%
-    select(Source, Visitors) %>%
+    select(Source = source, Visitors = visitors) %>%
     head(10) %>%
     pandoc.table(style='rmarkdown', justify='ll')
 ```
